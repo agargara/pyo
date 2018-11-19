@@ -1,12 +1,12 @@
--- tile object with color
-function Tile (color)
+-- tile object with tile type index
+function Tile (type)
     local self = {}
 
     -- initialization:
-    self.init = function (color)
-        self.color = color
+    self.init = function (type)
+        self.type = type
     end
 
-    self.init(color)
+    self.init(type)
     return self
 end
