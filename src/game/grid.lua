@@ -1,6 +1,8 @@
 -- grid which contains tiles and cursor.
 require 'game/tile'
 require 'game/cursor'
+require 'game/util'
+local inspect = require 'lib/inspect'
 
 -- Create a new grid:
 function Grid (game)
@@ -30,6 +32,8 @@ function Grid (game)
         )
         -- in swap mode or not?
         self.swapping = false
+        -- animation settings
+        self.clear_speed = 1
     end
 
     -- initialize grid with random tile array
@@ -41,7 +45,7 @@ function Grid (game)
                 repeat
                     local type = math.random(1, self.game.num_tile_types)
                     self.grid[row][col] = Tile(self, type, 4)
-                until (self.find_match_from_tile(row, col) == false)
+                until (next(self.find_matches_from_tile(row, col)) == nil)
             end
         end
     end
@@ -53,7 +57,12 @@ function Grid (game)
 
     -- update the animation logic:
     self.update = function (dt)
-        -- TODO
+        -- update each tile in grid:
+        for row=1, #self.grid do
+            for col=1, #self.grid[row] do
+                self.grid[row][col].update(dt, row, col)
+            end
+        end
     end
 
     self.draw = function ()
@@ -78,74 +87,116 @@ function Grid (game)
             return
         end
         self.swapping = true
-        self.grid[self.cursor.x][self.cursor.y].selected = true
+        self.grid[self.cursor.row][self.cursor.col].selected = true
     end
 
     -- deselect current tile (activated when 's' key is released)
     self.deselect_tile = function()
         self.swapping = false
-        self.grid[self.cursor.x][self.cursor.y].selected = false
+        self.grid[self.cursor.row][self.cursor.col].selected = false
     end
 
     -- swap two tiles
-    self.swap_tiles = function(x1, y1, x2, y2)
+    self.swap_tiles = function(row1, col1, row2, col2)
+        -- do not allow swapping if tiles are clearing
+        if self.grid[row1][col1].clearing or self.grid[row2][col2].clearing then
+            return
+        end
         -- swap
-        local temp_tile = self.grid[x1][y1]
-        self.grid[x1][y1] = self.grid[x2][y2]
-        self.grid[x2][y2] = temp_tile
+        self.grid[row1][col1], self.grid[row2][col2] = self.grid[row2][col2], self.grid[row1][col1]
         -- check if a match was made from either of the swapped tiles
-        if (
-            self.find_match_from_tile(x1, y1) or
-            self.find_match_from_tile(x2, y2)
-        ) then
-            print("match!")
+        local matches = self.find_matches_from_tile(row1, col1)
+        local matches2 = self.find_matches_from_tile(row2, col2)
+        -- merge matches
+        for k,v in pairs(matches2) do matches[k] = v end
+        -- erase matched tiles
+        for point, v in pairs(matches) do
+            self.grid[point[1]][point[2]].clearing = true
         end
     end
 
     -- find a match starting from a specific tile, optional direction
-    self.find_match_from_tile = function(row, col)
+    self.find_matches_from_tile = function(row, col)
         local t = self.grid[row][col].type
-        if (
-            -- up
-            (   self.tiles_match(row, col, row-1, col) and
-                self.tiles_match(row, col, row-2, col)
-            ) or
-            -- right
-            (   self.tiles_match(row, col, row, col+1) and
-                self.tiles_match(row, col, row, col+2)
-            ) or
-            -- down
-            (   self.tiles_match(row, col, row+1, col) and
-                self.tiles_match(row, col, row+2, col)
-            ) or
-            -- left
-            (   self.tiles_match(row, col, row, col-1) and
-                self.tiles_match(row, col, row, col-2)
-            ) or
-            -- middle horizontal
-            (   self.tiles_match(row, col, row, col-1) and
-                self.tiles_match(row, col, row, col+1)
-            ) or
-            -- middle vertical
-            (   self.tiles_match(row, col, row-1, col) and
-                self.tiles_match(row, col, row+1, col)
-            )
-        ) then
-            return true
-        else
-            return false
+        local vert_matches = {}
+        local hori_matches = {}
+        local matches = {}
+        -- search up starting at row-1
+        for r = row-1, 1, -1 do
+            if self.tile_is_type(r, col, t) then
+                vert_matches[{r,col}] = true
+            else
+                break
+            end
         end
+        -- search down starting at row+1
+        for r = row+1, #self.grid, 1 do
+            if self.tile_is_type(r, col, t) then
+                vert_matches[{r,col}] = true
+            else
+                break
+            end
+        end
+        -- search right starting at col+1
+        for c = col+1, #self.grid[row], 1 do
+            if self.tile_is_type(row, c, t) then
+                hori_matches[{row,c}] = true
+            else
+                break
+            end
+        end
+        -- search left starting at col-1
+        for c = col-1, 1, -1 do
+            if self.tile_is_type(row, c, t) then
+                hori_matches[{row,c}] = true
+            else
+                break
+            end
+        end
+        -- if 2 more more vertical matches, add to match array
+        if count_keys(vert_matches) >= 2 then
+            matches[{row,col}] = true
+            for k,v in pairs(vert_matches) do matches[k] = v end
+        end
+        -- if 2 more more horizontal matches, add to match array
+        if count_keys(hori_matches) >= 2 then
+            matches[{row,col}] = true
+            for k,v in pairs(hori_matches) do matches[k] = v end
+        end
+        return matches
     end
 
-    -- test if two tiles at given coordinates match
-    self.tiles_match = function(row1, col1, row2, col2)
+    -- test if a tile at given coordinate is a certain type
+    self.tile_is_type = function(row, col, t)
         return (
-            self.grid[row1] and
-            self.grid[row2] and
-            self.grid[row1][col1] and
-            self.grid[row2][col2] and
-            self.grid[row1][col1].type == self.grid[row2][col2].type
+            self.grid[row] and
+            self.grid[row][col] and
+            self.grid[row][col].type == t
         )
+    end
+
+    -- delete a tile
+    self.delete_tile = function(row, col)
+        -- replace tile with tile above, repeat to top
+        -- TODO animate falling
+        for r = row, 1, -1 do
+            if r == 1 then
+                -- at top, add random new tile that does not make a match
+                repeat
+                    local type = math.random(1, self.game.num_tile_types)
+                    self.grid[r][col] = Tile(self, type, 4)
+                until (next(self.find_matches_from_tile(r, col)) == nil)
+            else
+                self.grid[r][col] = self.grid[r-1][col]
+            end
+        end
+        -- check for new matches caused by falling tiles
+        for r = row, 1, -1 do
+            local m = self.find_matches_from_tile(r, col)
+            for point,v in pairs(m) do
+                self.grid[point[1]][point[2]].clearing = true
+            end
+        end
     end
 
     self.init(game)

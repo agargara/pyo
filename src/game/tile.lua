@@ -8,27 +8,31 @@ function Tile (grid, type, border)
         self.type = type
         self.border = border
         self.selected = false
+        self.clearing = false
+        self.alpha = 1.0
     end
 
     -- draw this tile
     self.draw = function(row, col)
         local color = self.grid.game.theme.tiles[self.type]
         -- brighten color if tile is selected
-        if (self.selected) then
+        if self.selected then
             color = (mix_colors(color, {1, 1, 1}, 0.5))
         end
-        -- x/y offsets
+        color[4] = self.alpha -- set alpha
+
+        -- row/col offsets
         local w = self.grid.tile_width
         local h = self.grid.tile_height
         local p = self.grid.tile_padding
-        local xo = self.grid.margin["left"] + (row-1)*w + p
-        local yo = self.grid.margin["top"]  + (col-1)*h + p
+        local rowo = self.grid.margin["left"] + (row-1)*h + p
+        local colo = self.grid.margin["top"]  + (col-1)*w + p
         -- fill
         love.graphics.setColor(mix_colors(color, {1, 1, 1}, 0.2))
         love.graphics.rectangle(
             "fill",
-            xo,
-            yo,
+            colo,
+            rowo,
             w - (p*2),
             h - (p*2)
         )
@@ -38,11 +42,23 @@ function Tile (grid, type, border)
             love.graphics.setLineWidth(self.border)
             love.graphics.rectangle(
                 "line",
-                xo + (self.border*0.5),
-                yo + (self.border*0.5),
+                colo + (self.border*0.5),
+                rowo + (self.border*0.5),
                 w - (p*2) - self.border,
                 h - (p*2) - self.border
             )
+        end
+    end
+
+    self.update = function(dt, row, col)
+        -- clearing: fade animation
+        if self.clearing then
+            self.selected = false
+            self.alpha = math.max(self.alpha - (self.grid.clear_speed * dt), 0)
+            if self.alpha <= 0 then
+                -- when finished clearing, delete this tile
+                self.grid.delete_tile(row, col)
+            end
         end
     end
 
