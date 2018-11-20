@@ -1,0 +1,5 @@
+- return the location of matched tiles
+- make tiles disappear on match
+- after tiles disappear, tiles should fall
+- better looking cursor
+- swap animations

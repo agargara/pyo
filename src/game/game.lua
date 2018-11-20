@@ -74,9 +74,18 @@ function Game ()
         elseif key == 'l' then
             self.grid.cursor.move(1, 0)
             self.das_timer = 0
+        -- s: select current tile
+        elseif key == 's' then
+            self.grid.select_tile()
         -- t: change theme
         elseif key == 't' then
             self.theme.load_next_theme()
+        end
+    end
+
+    self.keyreleased = function(key)
+        if key == 's' then
+            self.grid.deselect_tile()
         end
     end
 

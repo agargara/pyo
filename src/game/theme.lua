@@ -18,6 +18,7 @@ local theme2 = {
         0x2ab7ca, -- blue
         0xfed766, -- yellow
         0xe6e6ea, -- grey
+        0x643d85, -- purple
     }
 }
 
