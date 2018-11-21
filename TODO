@@ -1,8 +1,13 @@
-- make tiles disappear on match
-- after tiles disappear, tiles should fall
+- higher scores for combos
+- when swapping into a gap, immediately apply gravity
+- mysterious tile clearing bugs: problem with concurrence?
+    - hard to duplicate....
 - better looking cursor
 - swap animations
 
 DONE
+- add HUD with chain counter
+- after tiles disappear, tiles should fall
+- make tiles disappear on match
 - return the location of matched tiles
 - lock clearing tiles

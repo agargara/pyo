@@ -19,3 +19,12 @@ function count_keys(table)
     for _ in pairs(table) do count = count + 1 end
     return count
 end
+
+-- round a number to the nearest x
+function round_to_x(num, x)
+    return round(num / x) * x
+end
+
+function round(num)
+    return math.floor(num+0.5)
+end

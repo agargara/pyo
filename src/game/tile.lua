@@ -9,7 +9,9 @@ function Tile (grid, type, border)
         self.border = border
         self.selected = false
         self.clearing = false
+        self.cleared = false
         self.alpha = 1.0
+        self.dead_time = 0
     end
 
     -- draw this tile
@@ -47,18 +49,6 @@ function Tile (grid, type, border)
                 w - (p*2) - self.border,
                 h - (p*2) - self.border
             )
-        end
-    end
-
-    self.update = function(dt, row, col)
-        -- clearing: fade animation
-        if self.clearing then
-            self.selected = false
-            self.alpha = math.max(self.alpha - (self.grid.clear_speed * dt), 0)
-            if self.alpha <= 0 then
-                -- when finished clearing, delete this tile
-                self.grid.delete_tile(row, col)
-            end
         end
     end
 

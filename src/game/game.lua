@@ -1,6 +1,9 @@
 -- pyo
+require 'game/state'
 require 'game/grid'
 require 'game/theme'
+require 'game/hud'
+
 
 function Game ()
     local self = {}
@@ -15,7 +18,9 @@ function Game ()
         self.das = 0.2 -- delay auto shift (key repeat delay)
         self.das_timer = 0
 
+        self.state = State(self)
         self.grid = Grid(self)
+        self.hud  = HUD(self)
 
         self.restart()
     end
@@ -29,6 +34,7 @@ function Game ()
     self.draw = function ()
         love.graphics.setBackgroundColor(self.theme.background)
         self.grid.draw()
+        self.hud.draw()
     end
 
     -- update the game logic:
