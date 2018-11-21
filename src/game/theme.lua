@@ -68,7 +68,7 @@ function Theme (game)
             local r = bit.rshift(bit.band(hex, 0xFF0000), 16)
             local g = bit.rshift(bit.band(hex, 0x00FF00), 8)
             local b = bit.band(hex, 0x0000FF)
-            return {r / 256.0, g / 256.0, b / 256.0}
+            return {r, g, b}
         end
     end
 

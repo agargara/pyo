@@ -33,7 +33,7 @@ function Grid (game)
         -- in swap mode or not?
         self.swapping = false
         -- animation settings
-        self.clear_speed = 1.4 -- larger numbers are faster
+        self.clear_speed = 255*1.4 -- larger numbers are faster
         -- time to wait before letting tiles fall (seconds)
         self.fall_delay = 0.2
         -- time since last clear

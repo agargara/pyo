@@ -22,7 +22,7 @@ function HUD (game)
             love.graphics.print(chain_text, 100, 10)
         end
         if self.game.state.combo > 0 then
-            love.graphics.print(combo_text, 200, 10)
+            love.graphics.print(combo_text, 170, 10)
         end
     end
 

@@ -1,3 +1,5 @@
+require 'game/util'
+
 -- tile object with tile type index
 function Tile (grid, type, border)
     local self = {}
@@ -10,7 +12,7 @@ function Tile (grid, type, border)
         self.selected = false
         self.clearing = false
         self.cleared = false
-        self.alpha = 1.0
+        self.alpha = 255.0
         self.dead_time = 0
     end
 
@@ -19,7 +21,7 @@ function Tile (grid, type, border)
         local color = self.grid.game.theme.tiles[self.type]
         -- brighten color if tile is selected
         if self.selected then
-            color = (mix_colors(color, {1, 1, 1}, 0.5))
+            color = (mix_colors(color, {255, 255, 255}, 0.5))
         end
         color[4] = self.alpha -- set alpha
 
@@ -30,7 +32,7 @@ function Tile (grid, type, border)
         local rowo = self.grid.margin["left"] + (row-1)*h + p
         local colo = self.grid.margin["top"]  + (col-1)*w + p
         -- fill
-        love.graphics.setColor(mix_colors(color, {1, 1, 1}, 0.2))
+        love.graphics.setColor(mix_colors(color, {255, 255, 255}, 0.2))
         love.graphics.rectangle(
             "fill",
             colo,
